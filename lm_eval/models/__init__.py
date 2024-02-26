@@ -2,6 +2,7 @@ from . import (
     anthropic_llms,
     api_models,
     dummy,
+    fp8_emu,
     gguf,
     hf_vlms,
     huggingface,
@@ -13,6 +14,7 @@ from . import (
     openai_completions,
     optimum_lm,
     textsynth,
+    tpp,
     vllm_causallms,
     vllm_vlms,
 )
