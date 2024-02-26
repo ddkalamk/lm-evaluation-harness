@@ -8,6 +8,8 @@ from . import vllm_causallms
 from . import mamba_lm
 from . import optimum_lm
 from . import neuron_optimum
+from . import tpp
+from . import fp8_emu
 # TODO: implement __all__
 
 
