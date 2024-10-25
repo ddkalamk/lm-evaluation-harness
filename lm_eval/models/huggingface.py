@@ -1,3 +1,4 @@
+import atexit
 import copy
 import os
 from datetime import timedelta
@@ -270,6 +271,21 @@ class HFLM(TemplateLM):
                     # if we aren't launching via accelerate, ditch
                     self._rank = 0
                     self._world_size = 1
+            elif accelerator.num_processes > 1:
+                self._device = torch.device(f"{accelerator.device}")
+                self.accelerator = accelerator
+
+                self._rank = self.accelerator.process_index
+                self._world_size = self.accelerator.num_processes
+                eval_logger.info(
+                    f"Using {self._device} device with data parallelism {self._rank} rank of {self._world_size} total"
+                )
+
+                def dist_cleanup(acc):
+                    acc.wait_for_everyone()
+
+                atexit.register(dist_cleanup, accelerator)
+
         else:
             # if a PreTrainedModel was passed into HFLM, we forgo distributed setup.
             eval_logger.warning(

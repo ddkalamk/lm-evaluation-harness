@@ -13,10 +13,11 @@ class TppLM(HFLM):
         dtype = kwargs.get("dtype", "auto")
         weight_dtype = kwargs.pop("weight_dtype", None)
         cpp_profile = kwargs.pop("cpp_profile", False)
-        use_jit = kwargs.pop("use_jit", True)
+        use_jit = kwargs.pop("use_jit", False)
         only_last_logit = kwargs.pop("only_last_logit", False)
         num_beams = kwargs.get("num_beams", 1)
         tpp_dtype = get_dtype(dtype)
+        tpp_dtype = torch.bfloat16 if tpp_dtype == "auto" else tpp_dtype
         print(f"Use TPP: {use_tpp}, weight_dtype: {weight_dtype}")
         super().__init__(*args, **kwargs)
         if use_tpp:
@@ -24,6 +25,11 @@ class TppLM(HFLM):
                 jit_trace_model,
                 optimize_for_first_token,
             )
+
+            if self.world_size > 1:
+                import tpp_pytorch_extension.llm.llm_common as llm_common
+
+                llm_common.tensor_parallel_enabled = False
 
             if weight_dtype is not None:
                 weight_dtype = get_dtype(weight_dtype)
