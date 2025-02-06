@@ -425,7 +425,10 @@ class Task(abc.ABC):
             limit = None
 
         doc_id_docs = list(
-            self.doc_iterator(rank=rank, limit=limit, world_size=world_size)
+            # self.doc_iterator(rank=rank, limit=limit, world_size=world_size)
+            # let all ranks process full dataset so everyone gets same instances
+            # irrespective of number of ranks used, later we distribute them across ranks
+            self.doc_iterator(rank=0, limit=limit, world_size=1)
         )
 
         num_docs = len(doc_id_docs)
@@ -459,6 +462,9 @@ class Task(abc.ABC):
         # now flatten, this is to allow slicing to work with pickles
 
         sliced_instances = instances[:og_limit]
+
+        # distribute instances cross ranks
+        sliced_instances = sliced_instances[rank::world_size]
 
         flattened_instances = [
             instance
